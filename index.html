@@ -1,0 +1,211 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vocabulary Definition Match</title>
+<style>
+  body {
+    font-family: Arial;
+    background: #0f172a;
+    color: white;
+    text-align: center;
+  }
+  #game {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 30px;
+    position: relative;
+  }
+  .column {
+    width: 40%;
+  }
+  .item {
+    background: #1e293b;
+    margin: 10px;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .locked {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+  }
+  button {
+    margin-top: 20px;
+    padding: 12px 24px;
+    font-size: 18px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Match the Word to Its Definition</h1>
+<h2 id="round"></h2>
+
+<div id="game">
+  <div class="column" id="words"></div>
+  <svg id="lines"></svg>
+  <div class="column" id="defs"></div>
+</div>
+
+<button id="nextBtn" onclick="nextRound()">Next Group</button>
+<button id="restartBtn" onclick="restartGame()" style="display:none;">Restart Game</button>
+
+<script>
+const originalData = [
+["affectionate","showing love or warmth"],
+["breaker","a device that interrupts electrical flow"],
+["staggered","shocked or unsteady"],
+["missed","failed to hit or reach"],
+["surgery","medical operation"],
+["garments","items of clothing"],
+["inert","not moving or inactive"],
+["moan","a low sound of pain"],
+["repulsion","strong feeling of disgust"],
+["unconscious","not awake or aware"],
+["wounded","injured physically"],
+["exposure","state of being unprotected"],
+["faint","weak or about to lose consciousness"],
+["dignity","sense of self-respect"],
+["distress","extreme anxiety or pain"],
+["superstition","belief based on fear or tradition"],
+["vitality","energy and strength"],
+["quiver","to shake slightly"],
+["incision","a surgical cut"],
+["anesthetic","substance that stops pain"],
+["a cardinal sin","a very serious wrongdoing"],
+["fluttered","moved with quick light motions"],
+["irritable","easily annoyed"],
+["ruthless","showing no mercy"],
+["compelled","forced to do something"],
+["condemned","officially declared wrong"],
+["porcelain","a hard white ceramic"],
+["mourned","felt sorrow for a loss"],
+["assassin","a person who kills for political reasons"],
+["dismay","shock or disappointment"],
+["execution","the act of putting to death"],
+["exhausted","extremely tired"],
+["indispensable","absolutely necessary"],
+["unaccustomed","not familiar with"],
+["gaunt","very thin and pale"],
+["rustling","soft crackling sound"],
+["refrain","to stop oneself from doing"],
+["timid","shy or fearful"],
+["permission","official approval"],
+["presence","state of being somewhere"],
+["consent","agreement or approval"],
+["despise","to strongly hate"],
+["inconvenient","causing trouble or difficulty"],
+["insistent","demanding firmly"]
+];
+
+let data = [];
+let round = 0;
+let selectedWord = null;
+let correctMatches = 0;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startGame() {
+  data = shuffle(originalData);
+  round = 0;
+  document.getElementById("restartBtn").style.display = "none";
+  document.getElementById("nextBtn").style.display = "inline-block";
+  loadRound();
+}
+
+function loadRound() {
+  correctMatches = 0;
+  selectedWord = null;
+
+  document.getElementById("round").innerText = `Group ${round + 1} of 11`;
+  document.getElementById("words").innerHTML = "";
+  document.getElementById("defs").innerHTML = "";
+  document.getElementById("lines").innerHTML = "";
+
+  const group = data.slice(round * 4, round * 4 + 4);
+  const shuffledDefs = shuffle(group);
+
+  group.forEach(([word]) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerText = word;
+    div.onclick = () => selectedWord = div;
+    document.getElementById("words").appendChild(div);
+  });
+
+  shuffledDefs.forEach(([word, def]) => {
+    const div = document.createElement("div");
+    div.className = "item";
+    div.innerText = def;
+    div.dataset.word = word;
+    div.onclick = () => match(div);
+    document.getElementById("defs").appendChild(div);
+  });
+}
+
+function match(defDiv) {
+  if (!selectedWord) return;
+
+  const svg = document.getElementById("lines");
+  const r1 = selectedWord.getBoundingClientRect();
+  const r2 = defDiv.getBoundingClientRect();
+
+  const line = document.createElementNS("http://www.w3.org/2000/svg","line");
+  line.setAttribute("x1", r1.right);
+  line.setAttribute("y1", r1.top + r1.height / 2);
+  line.setAttribute("x2", r2.left);
+  line.setAttribute("y2", r2.top + r2.height / 2);
+  line.setAttribute("stroke-width", "4");
+
+  if (selectedWord.innerText === defDiv.dataset.word) {
+    line.setAttribute("stroke", "lime");
+    correctMatches++;
+    selectedWord.classList.add("locked");
+    defDiv.classList.add("locked");
+  } else {
+    line.setAttribute("stroke", "red");
+  }
+
+  svg.appendChild(line);
+  selectedWord = null;
+}
+
+function nextRound() {
+  if (correctMatches < 4) {
+    alert("You must correctly match all 4 words before continuing.");
+    return;
+  }
+
+  if (round < 10) {
+    round++;
+    loadRound();
+  } else {
+    document.getElementById("round").innerText = "Game Completed 🎉";
+    document.getElementById("nextBtn").style.display = "none";
+    document.getElementById("restartBtn").style.display = "inline-block";
+  }
+}
+
+function restartGame() {
+  startGame();
+}
+
+startGame();
+</script>
+
+</body>
+</html>
